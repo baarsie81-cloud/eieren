@@ -58,6 +58,28 @@ export async function setCustomerActiveAction(formData: FormData) {
   revalidatePath("/beheer/klanten");
 }
 
+export async function deleteCustomerAction(formData: FormData) {
+  await guardMutation();
+  const id = String(formData.get("id") ?? "");
+  if (!/^\d+$/.test(id)) return;
+
+  const sql = getSql();
+  await sql.transaction([
+    sql`SELECT id FROM customers WHERE id = ${id} AND NOT is_active FOR UPDATE`,
+    sql`
+      UPDATE delivery_stops SET
+        customer_id = NULL, customer_name = 'Verwijderde klant', address_line = '',
+        postal_code = '', city = '', phone = NULL, note = NULL, payment_request_url = NULL
+      WHERE customer_id = ${id}
+        AND EXISTS (SELECT 1 FROM customers WHERE id = ${id} AND NOT is_active)
+    `,
+    sql`DELETE FROM customers WHERE id = ${id} AND NOT is_active`,
+  ]);
+  revalidatePath("/");
+  revalidatePath("/beheer/klanten");
+  revalidatePath("/beheer/rondes");
+}
+
 export async function moveCustomerAction(formData: FormData) {
   await guardMutation();
   const id = String(formData.get("id") ?? "");

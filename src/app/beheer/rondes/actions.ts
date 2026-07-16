@@ -68,3 +68,14 @@ export async function completeRoundAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/beheer/rondes");
 }
+
+export async function deleteCompletedRoundAction(formData: FormData) {
+  await guardMutation();
+  const id = String(formData.get("id") ?? "");
+  if (!/^\d+$/.test(id)) return;
+
+  const sql = getSql();
+  await sql`DELETE FROM delivery_rounds WHERE id = ${id} AND status = 'completed'`;
+  revalidatePath("/");
+  revalidatePath("/beheer/rondes");
+}

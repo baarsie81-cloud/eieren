@@ -194,6 +194,12 @@ th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left
 th { color: var(--muted); background: #f8f9fa; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
 
 .settings-form { max-width: 680px; }
+.danger-zone { border-color: #efc4c0; background: #fffafa; }
+.reset-app-form { display: grid; gap: 14px; }
+.reset-app-form > p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.reset-app-form label { max-width: 360px; color: #34445b; font-size: 13px; font-weight: 680; display: grid; gap: 7px; }
+.reset-app-form .form-message { margin: 0; }
+.reset-app-form .danger-button { width: fit-content; }
 .round-create-form { display: grid; grid-template-columns: 180px 1fr auto; align-items: end; gap: 14px; }
 .round-list { display: grid; }
 .round-row { min-height: 100px; padding: 15px 0; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr 90px auto; align-items: center; gap: 16px; }
@@ -276,6 +282,7 @@ th { color: var(--muted); background: #f8f9fa; font-size: 12px; text-transform: 
   .round-row { grid-template-columns: 1fr auto; }
   .round-row .row-actions { grid-column: 1 / -1; }
   .history-stops > div { grid-template-columns: 1fr; gap: 4px; }
+  .reset-app-form .danger-button { width: 100%; }
 }
 
 @media (max-width: 430px) {

@@ -5,11 +5,12 @@ Mobiele bezorgapp voor een wekelijkse eierbezorging. Klanten, instellingen, bezo
 ## Wat werkt
 
 - Gedeelde login met een ondertekende `HttpOnly`-sessie van zeven dagen.
-- Klanten toevoegen, wijzigen, archiveren, herstellen, zoeken en in routevolgorde zetten.
+- Klanten toevoegen, wijzigen, archiveren, herstellen, definitief verwijderen, zoeken en in routevolgorde zetten.
 - `.xlsx`- en `.csv`-import met werkbladkeuze, kolomkoppeling en controlevoorbeeld.
-- Handmatig een ronde maken, starten, afvinken, ongedaan maken en als historie bewaren.
+- Handmatig een ronde maken, starten, afvinken, ongedaan maken, als historie bewaren en een afgeronde ronde veilig verwijderen.
 - Na bezorgen een ING-betaalverzoeklink opslaan en WhatsApp openen met een voorbereid bericht met klantnaam, bedrag en betaallink.
 - Instellingen voor rondedag, titel, standaardprijs, startadres en terugkeer naar start.
+- Volledige reset vanuit Instellingen voor een schone overdracht of nieuwe Excel-import.
 - Google Maps-wandelnavigatie per stop, zonder API-sleutel.
 
 ## Lokaal starten
@@ -63,6 +64,8 @@ pnpm build
 ## Privacy en veiligheid
 
 - Echte persoonsgegevens en bezorghistorie horen alleen in Neon, nooit in GitHub.
+- Bij het definitief verwijderen van een gearchiveerde klant worden persoonsgegevens en betaallinks in rondes geanonimiseerd; ronde-aantallen en bezorgstatus blijven bewaard.
+- De volledige reset verwijdert alle klanten en rondes en zet ingevulde instellingen terug naar neutrale standaardwaarden; de login blijft behouden.
 - `.env.local`, databaseverbindingen, gebruikersnamen, hashes en sessiegeheimen worden niet gecommit.
 - Databaseverkeer loopt uitsluitend via servercode.
 - Gebruik voor Vercel Preview de Neon-ontwikkelbranch en voor Vercel Production de Neon-productiebranch.

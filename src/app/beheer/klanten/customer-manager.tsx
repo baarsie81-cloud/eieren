@@ -15,6 +15,7 @@ import {
 import type { Customer } from "@/lib/types";
 import {
   confirmImportAction,
+  deleteCustomerAction,
   moveCustomerAction,
   previewImportAction,
   saveCustomerAction,
@@ -227,7 +228,7 @@ export function CustomerManager({ customers }: { customers: Customer[] }) {
               <div className="order-controls"><form action={moveCustomerAction}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="direction" value="up" /><button type="submit" aria-label={`${customer.name} omhoog`} disabled={index === 0}>↑</button></form><strong>{customer.routeOrder}</strong><form action={moveCustomerAction}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="direction" value="down" /><button type="submit" aria-label={`${customer.name} omlaag`} disabled={index === visible.length - 1}>↓</button></form></div>
               <div><h2>{customer.name}</h2><p>{formatAddress(customer.addressLine, customer.postalCode, customer.city)}</p>{customer.note ? <p className="note">{customer.note}</p> : null}</div>
               <div className="customer-meta"><span>{customer.defaultEggs} eieren</span><span>{customer.unitPriceCents == null ? "standaardprijs" : formatEuro(customer.unitPriceCents)}</span></div>
-              <div className="row-actions"><button className="text-button" type="button" onClick={() => setEditing(customer)}>Wijzigen</button><form action={setCustomerActiveAction} onSubmit={(event) => { if (!showArchived && !window.confirm(`${customer.name} archiveren?`)) event.preventDefault(); }}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="active" value={showArchived ? "true" : "false"} /><button className={showArchived ? "secondary-button" : "danger-button"} type="submit">{showArchived ? "Herstellen" : "Archiveren"}</button></form></div>
+              <div className="row-actions"><button className="text-button" type="button" onClick={() => setEditing(customer)}>Wijzigen</button><form action={setCustomerActiveAction} onSubmit={(event) => { if (!showArchived && !window.confirm(`${customer.name} archiveren?`)) event.preventDefault(); }}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="active" value={showArchived ? "true" : "false"} /><button className={showArchived ? "secondary-button" : "danger-button"} type="submit">{showArchived ? "Herstellen" : "Archiveren"}</button></form>{showArchived ? <form action={deleteCustomerAction} onSubmit={(event) => { if (!window.confirm(`${customer.name} definitief verwijderen? Persoonsgegevens en betaallinks worden ook uit rondes verwijderd. Dit kan niet ongedaan worden gemaakt.`)) event.preventDefault(); }}><input type="hidden" name="id" value={customer.id} /><button className="danger-button" type="submit">Definitief verwijderen</button></form> : null}</div>
             </article>
           ))}
         </div>
