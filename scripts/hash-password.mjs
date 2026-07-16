@@ -17,24 +17,26 @@ async function readPassword() {
 
   return await new Promise((resolve, reject) => {
     let password = "";
-    process.stdin.on("data", (key) => {
-      if (key === "\u0003") {
-        process.stdin.setRawMode(false);
-        reject(new Error("Afgebroken"));
-        return;
+    process.stdin.on("data", (input) => {
+      for (const key of input) {
+        if (key === "\u0003") {
+          process.stdin.setRawMode(false);
+          reject(new Error("Afgebroken"));
+          return;
+        }
+        if (key === "\r" || key === "\n") {
+          process.stdin.setRawMode(false);
+          process.stdin.pause();
+          process.stdout.write("\n");
+          resolve(password);
+          return;
+        }
+        if (key === "\u007f") {
+          password = password.slice(0, -1);
+          continue;
+        }
+        password += key;
       }
-      if (key === "\r" || key === "\n") {
-        process.stdin.setRawMode(false);
-        process.stdin.pause();
-        process.stdout.write("\n");
-        resolve(password);
-        return;
-      }
-      if (key === "\u007f") {
-        password = password.slice(0, -1);
-        return;
-      }
-      password += key;
     });
   });
 }
