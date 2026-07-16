@@ -47,9 +47,11 @@ export type DeliveryStop = {
   note: string;
   routeOrder: number;
   deliveredAt: string | null;
+  paymentRequestUrl: string;
 };
 
 export type RoundWithStops = DeliveryRound & { stops: DeliveryStop[] };
 
 export type ActionState = { ok: boolean; message: string };
 
+export type PaymentRequestActionState = ActionState & { paymentRequestUrl: string };

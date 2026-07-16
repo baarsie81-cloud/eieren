@@ -64,10 +64,13 @@ CREATE TABLE IF NOT EXISTS delivery_stops (
   note text,
   route_order integer NOT NULL CHECK (route_order >= 0),
   delivered_at timestamptz,
+  payment_request_url text,
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (round_id, customer_id)
 );
 
+ALTER TABLE delivery_stops
+  ADD COLUMN IF NOT EXISTS payment_request_url text;
+
 CREATE INDEX IF NOT EXISTS delivery_stops_round_route_idx
   ON delivery_stops (round_id, route_order, id);
-

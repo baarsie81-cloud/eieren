@@ -58,6 +58,7 @@ function mapStop(row: Row): DeliveryStop {
     note: stringValue(row.note),
     routeOrder: numberValue(row.route_order),
     deliveredAt: row.delivered_at == null ? null : stringValue(row.delivered_at),
+    paymentRequestUrl: stringValue(row.payment_request_url),
   };
 }
 
@@ -108,7 +109,7 @@ async function getStops(roundId: string): Promise<DeliveryStop[]> {
   const sql = getSql();
   const rows = (await sql`
     SELECT id::text, round_id::text, customer_name, address_line, postal_code, city,
-      phone, eggs, unit_price_cents, note, route_order, delivered_at::text
+      phone, eggs, unit_price_cents, note, route_order, delivered_at::text, payment_request_url
     FROM delivery_stops
     WHERE round_id = ${roundId}
     ORDER BY route_order, id
@@ -149,4 +150,3 @@ export async function getRound(roundId: string): Promise<RoundWithStops | null> 
   const round = mapRound(rows[0]);
   return { ...round, stops: await getStops(round.id) };
 }
-

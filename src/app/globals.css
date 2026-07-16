@@ -83,6 +83,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .delivered-button:hover:not(:disabled) { color: #fff; background: var(--accent); }
 .delivered-button[aria-pressed="true"] { color: var(--success); border-color: var(--success); background: var(--success-soft); }
 .delivered-button:disabled { opacity: .45; cursor: not-allowed; }
+.payment-request-panel { grid-column: 2 / -1; width: 100%; margin: 4px 0 12px; padding: 14px; border: 1px solid #b8dfc8; border-radius: 9px; background: var(--success-soft); }
+.payment-request-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.payment-request-heading > div { min-width: 0; display: grid; gap: 3px; }
+.payment-request-heading strong { font-size: 14px; }
+.payment-request-heading span { color: var(--muted); font-size: 12px; }
+.payment-request-form { margin-top: 11px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
+.payment-request-form input { min-height: 42px; }
+.payment-request-form .secondary-button { min-height: 42px; }
+.whatsapp-button { min-height: 42px; padding: 0 15px; border: 1px solid #128c4b; border-radius: 8px; color: #fff; background: #128c4b; font-size: 13px; font-weight: 720; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
+.whatsapp-button:hover { background: #0f7a40; }
+.payment-request-message { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
+.payment-request-message.is-success { color: var(--success); }
+.payment-request-message.is-error { color: var(--danger); }
 .route-row { min-height: 84px; padding: 12px 14px 12px 0; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 12px; }
 .route-row.is-delivered { opacity: .6; }
 .address-warning { max-width: 110px; color: var(--danger); font-size: 13px; text-align: right; }
@@ -228,6 +241,7 @@ th { color: var(--muted); background: #f8f9fa; font-size: 12px; text-transform: 
   .search-field { width: 100%; max-width: none; grid-row: 1; }
   .delivery-list, .route-list { max-height: none; margin-top: 12px; overflow: visible; scrollbar-gutter: auto; }
   .delivery-row { min-height: 124px; padding: 14px 0; grid-template-columns: 32px minmax(0, 1fr) auto; grid-template-areas: "number customer button" "number details button"; align-items: center; gap: 7px 9px; }
+  .delivery-row.is-delivered { grid-template-areas: "number customer button" "number details button" "number payment payment"; }
   .delivery-row.is-next { box-shadow: inset 3px 0 0 var(--accent); padding-left: 5px; }
   .route-number { grid-area: number; align-self: start; padding-top: 2px; font-size: 22px; }
   .customer { grid-area: customer; }
@@ -236,6 +250,10 @@ th { color: var(--muted); background: #f8f9fa; font-size: 12px; text-transform: 
   .eggs { grid-area: details; margin-right: 8px; font-size: 12px; }
   .amount { grid-area: details; justify-self: end; font-size: 12px; }
   .delivered-button { grid-area: button; min-width: 90px; min-height: 44px; padding: 0 9px; font-size: 13px; }
+  .payment-request-panel { grid-area: payment; margin-top: 8px; }
+  .payment-request-heading { align-items: stretch; flex-direction: column; }
+  .payment-request-form { grid-template-columns: 1fr; }
+  .whatsapp-button { width: 100%; }
   .route-row { grid-template-columns: 34px 1fr; padding: 14px 0; }
   .route-row > a, .route-row > .address-warning { grid-column: 2; justify-self: start; }
   .return-route { align-items: stretch; flex-direction: column; }

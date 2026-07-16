@@ -8,6 +8,7 @@ Mobiele bezorgapp voor een wekelijkse eierbezorging. Klanten, instellingen, bezo
 - Klanten toevoegen, wijzigen, archiveren, herstellen, zoeken en in routevolgorde zetten.
 - `.xlsx`- en `.csv`-import met werkbladkeuze, kolomkoppeling en controlevoorbeeld.
 - Handmatig een ronde maken, starten, afvinken, ongedaan maken en als historie bewaren.
+- Na bezorgen een ING-betaalverzoeklink opslaan en WhatsApp openen met een voorbereid bericht met klantnaam, bedrag en betaallink.
 - Instellingen voor rondedag, titel, standaardprijs, startadres en terugkeer naar start.
 - Google Maps-wandelnavigatie per stop, zonder API-sleutel.
 
@@ -66,6 +67,11 @@ pnpm build
 - Databaseverkeer loopt uitsluitend via servercode.
 - Gebruik voor Vercel Preview de Neon-ontwikkelbranch en voor Vercel Production de Neon-productiebranch.
 
-## Nog niet in deze fase
+## Betaalverzoek en WhatsApp
 
-Tikkie, WhatsApp, een ingebouwde kaart en automatische route-optimalisatie zijn bewust nog niet gekoppeld.
+- Maak het betaalverzoek eerst zelf in de ING-app en plak de link bij de bezorgde klant.
+- De app maakt daarna een WhatsApp-bericht klaar; Pim controleert en verstuurt het bericht zelf.
+- De betaallink hoort alleen bij die bezorgstop en wordt niet meegenomen naar een volgende ronde.
+- Zonder geschikt telefoonnummer blijft de WhatsApp-knop uit en toont de app een duidelijke melding.
+
+Een ingebouwde kaart, automatische route-optimalisatie en het automatisch aanmaken of versturen van betaalverzoeken zijn nog niet gekoppeld.
