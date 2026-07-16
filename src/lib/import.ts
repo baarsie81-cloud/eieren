@@ -17,20 +17,30 @@ export const importFieldLabels: Record<ImportField, string> = {
 };
 
 const aliases: Record<ImportField, string[]> = {
-  name: ["naam", "klant", "klantnaam", "familie", "bewoner"],
+  name: ["naam", "klant", "klantnaam", "naam klant", "familie", "bewoner"],
   addressLine: ["adres", "straat", "straatnaam", "adresregel", "huisadres"],
   postalCode: ["postcode", "post code", "zip", "zip code"],
   city: ["plaats", "woonplaats", "stad"],
   phone: ["telefoon", "telefoonnummer", "mobiel", "06", "tel"],
   defaultEggs: ["eieren", "aantal eieren", "aantal", "standaard aantal"],
   unitPrice: ["prijs", "prijs per ei", "stuksprijs", "afwijkende prijs"],
-  note: ["notitie", "opmerking", "opmerkingen", "bijzonderheden"],
+  note: ["notitie", "opmerking", "opmerkingen", "bijzonderheden", "frequentie"],
   routeOrder: ["volgorde", "route", "routevolgorde", "stop", "stopnummer"],
 };
 
-export type WorksheetPreview = { name: string; headers: string[]; rows: string[][] };
+export type WorksheetPreview = {
+  name: string;
+  headers: string[];
+  rows: string[][];
+  headerRowNumber?: number;
+  rowNumbers?: number[];
+  source?: "standard" | "ei-pim-legacy";
+  suggestedCity?: string;
+  notice?: string;
+  rowLimitExceeded?: boolean;
+};
 
-export type ImportCandidate = CustomerInput & { rowNumber: number };
+export type ImportCandidate = CustomerInput & { rowNumber: number; allowMissingPostalCode?: boolean };
 export type ImportRowStatus = "new" | "update" | "skip" | "error";
 export type ImportPreviewRow = {
   rowNumber: number;
@@ -41,7 +51,7 @@ export type ImportPreviewRow = {
 };
 
 function normalizeHeader(value: string) {
-  return value.trim().toLocaleLowerCase("nl-NL").replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  return value.trim().toLocaleLowerCase("nl-NL").replace(/[:()]/g, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ");
 }
 
 export function detectImportMapping(headers: string[]): ImportMapping {
@@ -52,7 +62,11 @@ export function detectImportMapping(headers: string[]): ImportMapping {
   })) as ImportMapping;
 }
 
-export function mapWorksheetRows(rows: string[][], mapping: ImportMapping): ImportCandidate[] {
+export function mapWorksheetRows(
+  rows: string[][],
+  mapping: ImportMapping,
+  options: { city?: string; postalCode?: string; allowMissingPostalCode?: boolean; headerRowNumber?: number; rowNumbers?: number[] } = {},
+): ImportCandidate[] {
   return rows.map((row, index) => {
     const value = (field: ImportField) => {
       const column = mapping[field];
@@ -62,15 +76,16 @@ export function mapWorksheetRows(rows: string[][], mapping: ImportMapping): Impo
       ...customerInputFromValues({
         name: value("name"),
         addressLine: value("addressLine"),
-        postalCode: value("postalCode"),
-        city: value("city"),
+        postalCode: value("postalCode") || options.postalCode,
+        city: value("city") || options.city,
         phone: value("phone"),
         defaultEggs: value("defaultEggs"),
         unitPrice: value("unitPrice"),
         note: value("note"),
         routeOrder: value("routeOrder"),
       }),
-      rowNumber: index + 2,
+      rowNumber: options.rowNumbers?.[index] ?? (options.headerRowNumber ?? 1) + index + 1,
+      allowMissingPostalCode: options.allowMissingPostalCode,
     };
   });
 }

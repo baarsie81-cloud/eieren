@@ -45,7 +45,10 @@ Het databaseschema staat in `db/schema.sql`. De fictieve ontwikkeldata staat in 
 - Ondersteund: `.xlsx` en `.csv`, maximaal 5 MB en 1.000 regels.
 - Een oud `.xls`-bestand moet eerst in Excel als `.xlsx` worden opgeslagen.
 - Het originele bestand wordt alleen tijdelijk op de server gelezen en nergens bewaard.
+- Het bestaande Ei Pim-tabblad `Klanten` wordt automatisch herkend: straatnamen en huisnummers worden samengevoegd en de laatst ingevulde bestelling bepaalt het standaard aantal en de prijs.
+- Voor dit bestaande bestand wordt `Apeldoorn` voorgesteld. De plaats blijft bij iedere import wijzigbaar; postcode mag later per klant worden aangevuld.
 - Controleer altijd het voorbeeld met `nieuw`, `bijwerken`, `overslaan` en `fout` vóór de definitieve import.
+- Een volgend bijgewerkt Excel-bestand werkt klanten met hetzelfde adres bij en voegt nieuwe adressen toe.
 - Ontbrekende klanten in Excel worden nooit automatisch verwijderd of gearchiveerd.
 
 ## Controleren

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatAddress } from "@/lib/format";
 import { useActionState } from "react";
 import type { DeliveryRound, RoundWithStops } from "@/lib/types";
 import { completeRoundAction, createRoundAction, startRoundAction } from "./actions";
@@ -35,7 +36,7 @@ export function RoundManager({ rounds, selectedRound, suggestedDate, suggestedTi
           ))}
         </div>
       </section>
-      {selectedRound ? <section className="admin-section"><div className="section-heading compact"><div><h2>{selectedRound.title}</h2><p>{selectedRound.deliveredCount} van {selectedRound.stopCount} bezorgd</p></div><span className={`status-label status-${selectedRound.status}`}>{statusLabels[selectedRound.status]}</span></div><div className="history-stops">{selectedRound.stops.map((stop) => <div key={stop.id}><strong>{stop.routeOrder}. {stop.customerName}</strong><span>{stop.addressLine}, {stop.postalCode} {stop.city}</span><span>{stop.deliveredAt ? "Bezorgd" : "Niet bezorgd"}</span></div>)}</div></section> : null}
+      {selectedRound ? <section className="admin-section"><div className="section-heading compact"><div><h2>{selectedRound.title}</h2><p>{selectedRound.deliveredCount} van {selectedRound.stopCount} bezorgd</p></div><span className={`status-label status-${selectedRound.status}`}>{statusLabels[selectedRound.status]}</span></div><div className="history-stops">{selectedRound.stops.map((stop) => <div key={stop.id}><strong>{stop.routeOrder}. {stop.customerName}</strong><span>{formatAddress(stop.addressLine, stop.postalCode, stop.city)}</span><span>{stop.deliveredAt ? "Bezorgd" : "Niet bezorgd"}</span></div>)}</div></section> : null}
     </>
   );
 }

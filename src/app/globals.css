@@ -105,8 +105,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .empty-state h2 { font-size: 20px; }
 .empty-state p { margin: 8px 0 18px; color: var(--muted); }
 
-.admin-content { padding: 30px; display: grid; gap: 24px; }
-.admin-section, .import-panel { padding: 26px; border: 1px solid var(--border); border-radius: 11px; background: #fff; }
+.admin-content { min-width: 0; padding: 30px; display: grid; gap: 24px; }
+.admin-section, .import-panel { min-width: 0; padding: 26px; border: 1px solid var(--border); border-radius: 11px; background: #fff; }
 .admin-section.narrow { max-width: 760px; width: 100%; margin: 0 auto; }
 .section-heading { margin-bottom: 22px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .section-heading.compact { margin-bottom: 18px; }
@@ -154,14 +154,20 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .row-actions form { display: flex; }
 
-.drop-zone { min-height: 190px; padding: 24px; border: 2px dashed var(--border-strong); border-radius: 10px; background: #fafbfc; display: grid; place-items: center; align-content: center; gap: 7px; text-align: center; }
+.drop-zone { min-width: 0; min-height: 190px; padding: 24px; border: 2px dashed var(--border-strong); border-radius: 10px; background: #fafbfc; display: grid; place-items: center; align-content: center; gap: 7px; text-align: center; }
+.drop-zone strong, .drop-zone span { max-width: 100%; overflow-wrap: anywhere; }
 .drop-zone:hover { border-color: var(--accent); background: var(--accent-soft); }
 .drop-zone span { color: var(--muted); font-size: 13px; }
 .drop-zone .secondary-button { margin-top: 8px; }
 .drop-icon { width: 34px; height: 34px; color: var(--accent); }
-.mapping-panel { margin-top: 20px; }
+.mapping-panel { min-width: 0; margin-top: 20px; }
 .mapping-panel > label { max-width: 360px; margin-bottom: 16px; }
-.mapping-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+.mapping-grid { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+.import-notice { margin: 0 0 16px; padding: 13px 15px; border: 1px solid #f3c39f; border-radius: 8px; color: #7a390e; background: var(--accent-soft); font-size: 14px; line-height: 1.5; }
+.import-defaults { margin-top: 18px; padding: 16px; border-radius: 9px; background: #f8f9fa; }
+.import-defaults h3, .import-defaults p { margin: 0; }
+.import-defaults h3 { font-size: 16px; }
+.import-defaults p { margin: 5px 0 14px; color: var(--muted); font-size: 13px; }
 .import-preview { margin-top: 22px; }
 .import-counts { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
 .import-counts span, .status-label { padding: 5px 9px; border-radius: 999px; color: var(--muted); background: #eef1f4; font-size: 12px; font-weight: 720; white-space: nowrap; }

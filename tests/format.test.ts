@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { customerInputFromValues, validateCustomerInput } from "../src/lib/customer-input";
-import { googleMapsWalkingUrl, makeAddressKey, normalizePostalCode, parseMoneyToCents } from "../src/lib/format";
+import { formatAddress, googleMapsWalkingUrl, makeAddressKey, normalizePostalCode, parseMoneyToCents } from "../src/lib/format";
 
 describe("klantvalidatie en bedragen", () => {
   it("normaliseert adressen en postcodes", () => {
@@ -22,7 +22,11 @@ describe("klantvalidatie en bedragen", () => {
 
   it("maakt alleen een route voor een volledig adres", () => {
     expect(googleMapsWalkingUrl("Molenstraat 12", "1234 AB", "Voorbeeldstad")).toContain("travelmode=walking");
+    expect(googleMapsWalkingUrl("Molenstraat 12", "", "Voorbeeldstad")).toContain("travelmode=walking");
     expect(googleMapsWalkingUrl("Molenstraat", "", "Voorbeeldstad")).toBeNull();
   });
-});
 
+  it("toont een adres zonder dubbele spaties als de postcode ontbreekt", () => {
+    expect(formatAddress("Molenstraat 12", "", "Apeldoorn")).toBe("Molenstraat 12, Apeldoorn");
+  });
+});

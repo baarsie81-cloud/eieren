@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { SearchIcon, UploadIcon } from "@/components/icons";
-import { formatEuro } from "@/lib/format";
+import { formatAddress, formatEuro } from "@/lib/format";
 import {
   detectImportMapping,
   importFieldLabels,
@@ -57,6 +57,8 @@ function ImportPanel() {
   const [worksheets, setWorksheets] = useState<WorksheetPreview[]>([]);
   const [sheetIndex, setSheetIndex] = useState(0);
   const [mapping, setMapping] = useState<ImportMapping | null>(null);
+  const [defaultCity, setDefaultCity] = useState("");
+  const [defaultPostalCode, setDefaultPostalCode] = useState("");
   const [preview, setPreview] = useState<ImportPreviewRow[]>([]);
   const [message, setMessage] = useState("");
   const [loading, startTransition] = useTransition();
@@ -66,28 +68,45 @@ function ImportPanel() {
     if (!file) return;
     setMessage("Bestand lezen…");
     setPreview([]);
+    setWorksheets([]);
+    setMapping(null);
+    setDefaultCity("");
+    setDefaultPostalCode("");
     const formData = new FormData();
     formData.set("file", file);
-    const response = await fetch("/api/import/preview", { method: "POST", body: formData });
-    const result = await response.json() as { worksheets?: WorksheetPreview[]; error?: string };
-    if (!response.ok || !result.worksheets) {
-      setMessage(result.error ?? "Importeren is niet gelukt.");
-      return;
+    try {
+      const response = await fetch("/api/import/preview", { method: "POST", body: formData });
+      const result = await response.json() as { worksheets?: WorksheetPreview[]; error?: string };
+      if (!response.ok || !result.worksheets) {
+        setMessage(result.error ?? "Importeren is niet gelukt.");
+        return;
+      }
+      setWorksheets(result.worksheets);
+      setSheetIndex(0);
+      setMapping(detectImportMapping(result.worksheets[0].headers));
+      setDefaultCity(result.worksheets[0].suggestedCity ?? "");
+      setMessage(`${result.worksheets.length} werkblad${result.worksheets.length === 1 ? "" : "en"} gevonden. Kies het juiste werkblad en controleer de kolommen.`);
+    } catch {
+      setMessage("Het bestand kon niet worden gelezen. Probeer het opnieuw.");
     }
-    setWorksheets(result.worksheets);
-    setSheetIndex(0);
-    setMapping(detectImportMapping(result.worksheets[0].headers));
-    setMessage(`${result.worksheets.reduce((total, item) => total + item.rows.length, 0)} regels gevonden. Controleer de kolommen.`);
   }
 
   function chooseSheet(index: number) {
     setSheetIndex(index);
     setMapping(detectImportMapping(worksheets[index].headers));
+    setDefaultCity(worksheets[index].suggestedCity ?? "");
+    setDefaultPostalCode("");
     setPreview([]);
   }
 
   function candidates() {
-    return sheet && mapping ? mapWorksheetRows(sheet.rows, mapping) : [];
+    return sheet && mapping ? mapWorksheetRows(sheet.rows, mapping, {
+      city: defaultCity,
+      postalCode: defaultPostalCode,
+      allowMissingPostalCode: sheet.source === "ei-pim-legacy",
+      headerRowNumber: sheet.headerRowNumber,
+      rowNumbers: sheet.rowNumbers,
+    }) : [];
   }
 
   function makePreview() {
@@ -110,6 +129,8 @@ function ImportPanel() {
         setPreview([]);
         setWorksheets([]);
         setMapping(null);
+        setDefaultCity("");
+        setDefaultPostalCode("");
       }
     });
   }
@@ -133,6 +154,8 @@ function ImportPanel() {
       {sheet && mapping ? (
         <div className="mapping-panel">
           {worksheets.length > 1 ? <label>Werkblad<select value={sheetIndex} onChange={(event) => chooseSheet(Number(event.target.value))}>{worksheets.map((item, index) => <option value={index} key={item.name}>{item.name}</option>)}</select></label> : null}
+          {sheet.notice ? <p className="import-notice">{sheet.notice}</p> : null}
+          {sheet.rowLimitExceeded ? <p className="form-message is-error">Dit werkblad bevat meer dan 1.000 regels. Maak het werkblad kleiner voordat je importeert.</p> : null}
           <div className="mapping-grid">
             {importFields.map((field) => (
               <label key={field}>{importFieldLabels[field]}
@@ -143,13 +166,33 @@ function ImportPanel() {
               </label>
             ))}
           </div>
-          <button className="secondary-button" type="button" onClick={makePreview} disabled={loading || mapping.name == null || mapping.addressLine == null || mapping.postalCode == null || mapping.city == null}>{loading ? "Controleren…" : "Controlevoorbeeld maken"}</button>
+          {mapping.city == null || mapping.postalCode == null ? (
+            <div className="import-defaults">
+              <h3>Ontbrekende adresgegevens aanvullen</h3>
+              <p>Deze waarden worden alleen gebruikt wanneer het gekozen werkblad geen eigen kolom heeft.</p>
+              <div className="mapping-grid">
+                {mapping.city == null ? <label>Plaats<input value={defaultCity} onChange={(event) => { setDefaultCity(event.target.value); setPreview([]); }} placeholder="Bijv. Apeldoorn" /></label> : null}
+                {mapping.postalCode == null ? <label>Postcode (optioneel)<input value={defaultPostalCode} onChange={(event) => { setDefaultPostalCode(event.target.value); setPreview([]); }} placeholder="Later per klant aan te vullen" /></label> : null}
+              </div>
+            </div>
+          ) : null}
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={makePreview}
+            disabled={loading
+              || sheet.rowLimitExceeded
+              || mapping.name == null
+              || mapping.addressLine == null
+              || (mapping.city == null && defaultCity.trim().length < 2)
+              || (sheet.source !== "ei-pim-legacy" && mapping.postalCode == null && defaultPostalCode.trim().length < 4)}
+          >{loading ? "Controleren…" : "Controlevoorbeeld maken"}</button>
         </div>
       ) : null}
       {preview.length ? (
         <div className="import-preview">
           <div className="import-counts"><span className="status-new">{counts.new ?? 0} nieuw</span><span className="status-update">{counts.update ?? 0} bijwerken</span><span>{counts.skip ?? 0} overslaan</span><span className="status-error">{counts.error ?? 0} fout</span></div>
-          <div className="table-scroll"><table><thead><tr><th>Regel</th><th>Status</th><th>Naam</th><th>Adres</th><th>Toelichting</th></tr></thead><tbody>{preview.slice(0, 100).map((row) => <tr key={row.rowNumber}><td>{row.rowNumber}</td><td><span className={`status-label status-${row.status}`}>{row.status === "new" ? "nieuw" : row.status === "update" ? "bijwerken" : row.status === "skip" ? "overslaan" : "fout"}</span></td><td>{row.customer.name || "—"}</td><td>{row.customer.addressLine || "—"}, {row.customer.postalCode}</td><td>{row.reason}</td></tr>)}</tbody></table></div>
+          <div className="table-scroll"><table><thead><tr><th>Regel</th><th>Status</th><th>Naam</th><th>Adres</th><th>Toelichting</th></tr></thead><tbody>{preview.slice(0, 100).map((row) => <tr key={row.rowNumber}><td>{row.rowNumber}</td><td><span className={`status-label status-${row.status}`}>{row.status === "new" ? "nieuw" : row.status === "update" ? "bijwerken" : row.status === "skip" ? "overslaan" : "fout"}</span></td><td>{row.customer.name || "—"}</td><td>{formatAddress(row.customer.addressLine, row.customer.postalCode, row.customer.city)}</td><td>{row.reason}</td></tr>)}</tbody></table></div>
           {preview.length > 100 ? <p className="muted-text">De eerste 100 regels worden getoond; alle regels worden verwerkt.</p> : null}
           <button className="primary-button" type="button" onClick={confirmImport} disabled={loading || (counts.new ?? 0) + (counts.update ?? 0) === 0}>{loading ? "Importeren…" : "Goedgekeurde regels importeren"}</button>
         </div>
@@ -182,7 +225,7 @@ export function CustomerManager({ customers }: { customers: Customer[] }) {
           {visible.length === 0 ? <div className="empty-state"><h2>Geen klanten gevonden</h2><p>{showArchived ? "Het archief is leeg." : "Voeg een klant toe of pas de zoekopdracht aan."}</p></div> : visible.map((customer, index) => (
             <article className="customer-row" key={customer.id}>
               <div className="order-controls"><form action={moveCustomerAction}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="direction" value="up" /><button type="submit" aria-label={`${customer.name} omhoog`} disabled={index === 0}>↑</button></form><strong>{customer.routeOrder}</strong><form action={moveCustomerAction}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="direction" value="down" /><button type="submit" aria-label={`${customer.name} omlaag`} disabled={index === visible.length - 1}>↓</button></form></div>
-              <div><h2>{customer.name}</h2><p>{customer.addressLine}, {customer.postalCode} {customer.city}</p>{customer.note ? <p className="note">{customer.note}</p> : null}</div>
+              <div><h2>{customer.name}</h2><p>{formatAddress(customer.addressLine, customer.postalCode, customer.city)}</p>{customer.note ? <p className="note">{customer.note}</p> : null}</div>
               <div className="customer-meta"><span>{customer.defaultEggs} eieren</span><span>{customer.unitPriceCents == null ? "standaardprijs" : formatEuro(customer.unitPriceCents)}</span></div>
               <div className="row-actions"><button className="text-button" type="button" onClick={() => setEditing(customer)}>Wijzigen</button><form action={setCustomerActiveAction} onSubmit={(event) => { if (!showArchived && !window.confirm(`${customer.name} archiveren?`)) event.preventDefault(); }}><input type="hidden" name="id" value={customer.id} /><input type="hidden" name="active" value={showArchived ? "true" : "false"} /><button className={showArchived ? "secondary-button" : "danger-button"} type="submit">{showArchived ? "Herstellen" : "Archiveren"}</button></form></div>
             </article>

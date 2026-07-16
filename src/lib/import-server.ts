@@ -2,6 +2,7 @@ import "server-only";
 
 import { getSql } from "./db";
 import { validateCustomerInput } from "./customer-input";
+import { normalizeText } from "./format";
 import { findDuplicateImportRows, type ImportCandidate, type ImportPreviewRow } from "./import";
 
 type ExistingCustomer = {
@@ -22,7 +23,7 @@ type ExistingCustomer = {
 function sameCustomer(candidate: ImportCandidate, existing: ExistingCustomer) {
   return candidate.name === existing.name
     && candidate.addressLine === existing.address_line
-    && candidate.postalCode === existing.postal_code
+    && (!candidate.postalCode || candidate.postalCode === existing.postal_code)
     && candidate.city === existing.city
     && candidate.phone === (existing.phone ?? "")
     && candidate.defaultEggs === existing.default_eggs
@@ -30,6 +31,10 @@ function sameCustomer(candidate: ImportCandidate, existing: ExistingCustomer) {
     && candidate.note === (existing.note ?? "")
     && (candidate.routeOrder === 0 || candidate.routeOrder === existing.route_order)
     && existing.is_active;
+}
+
+function addressAndCityKey(addressLine: string, city: string) {
+  return `${normalizeText(addressLine)}|${normalizeText(city)}`;
 }
 
 export async function classifyImport(candidates: ImportCandidate[]): Promise<ImportPreviewRow[]> {
@@ -41,21 +46,29 @@ export async function classifyImport(candidates: ImportCandidate[]): Promise<Imp
   `) as ExistingCustomer[];
 
   const byAddress = new Map<string, ExistingCustomer[]>();
+  const byAddressLine = new Map<string, ExistingCustomer[]>();
   for (const customer of existing) {
     const matches = byAddress.get(customer.address_key) ?? [];
     matches.push(customer);
     byAddress.set(customer.address_key, matches);
+    const addressLineKey = addressAndCityKey(customer.address_line, customer.city);
+    const addressMatches = byAddressLine.get(addressLineKey) ?? [];
+    addressMatches.push(customer);
+    byAddressLine.set(addressLineKey, addressMatches);
   }
 
   const duplicateRows = findDuplicateImportRows(candidates);
   return candidates.slice(0, 1000).map((candidate) => {
-    const errors = validateCustomerInput(candidate);
+    const errors = validateCustomerInput(candidate, { postalCodeRequired: !candidate.allowMissingPostalCode });
     if (errors.length) return { rowNumber: candidate.rowNumber, status: "error", reason: errors.join(" "), customer: candidate };
     if (duplicateRows.has(candidate.rowNumber)) {
       return { rowNumber: candidate.rowNumber, status: "error", reason: "Dubbel adres in dit bestand.", customer: candidate };
     }
 
-    const matches = byAddress.get(candidate.addressKey) ?? [];
+    const exactMatches = byAddress.get(candidate.addressKey) ?? [];
+    const matches = exactMatches.length
+      ? exactMatches
+      : byAddressLine.get(addressAndCityKey(candidate.addressLine, candidate.city)) ?? [];
     if (matches.length > 1) {
       return { rowNumber: candidate.rowNumber, status: "error", reason: "Meerdere bestaande klanten hebben dit adres; controleer handmatig.", customer: candidate };
     }
@@ -83,10 +96,13 @@ export async function applyImport(candidates: ImportCandidate[]) {
     if (row.status === "update" && row.existingId) {
       return sql`
         UPDATE customers SET
-          name = ${customer.name}, address_line = ${customer.addressLine}, postal_code = ${customer.postalCode},
+          name = ${customer.name}, address_line = ${customer.addressLine},
+          postal_code = CASE WHEN ${customer.postalCode} = '' THEN postal_code ELSE ${customer.postalCode} END,
           city = ${customer.city}, phone = ${customer.phone || null}, default_eggs = ${customer.defaultEggs},
           unit_price_cents = ${customer.unitPriceCents}, note = ${customer.note || null},
-          route_order = ${routeOrder}, is_active = true, address_key = ${customer.addressKey}, updated_at = now()
+          route_order = ${routeOrder}, is_active = true,
+          address_key = CASE WHEN ${customer.postalCode} = '' THEN address_key ELSE ${customer.addressKey} END,
+          updated_at = now()
         WHERE id = ${row.existingId}
       `;
     }

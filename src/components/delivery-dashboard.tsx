@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { completeDashboardRoundAction, startDashboardRoundAction, toggleDeliveryAction } from "@/app/dashboard-actions";
 import { CheckIcon, ListIcon, RouteIcon, SearchIcon } from "./icons";
-import { formatEuro, googleMapsAddressUrl, googleMapsWalkingUrl } from "@/lib/format";
+import { formatAddress, formatEuro, googleMapsAddressUrl, googleMapsWalkingUrl } from "@/lib/format";
 import type { AppSettings, RoundWithStops } from "@/lib/types";
 
 export function DeliveryDashboard({ round, settings }: { round: RoundWithStops | null; settings: AppSettings }) {
@@ -73,7 +73,7 @@ export function DeliveryDashboard({ round, settings }: { round: RoundWithStops |
             {filteredStops.map((stop) => {
               const routeUrl = googleMapsWalkingUrl(stop.addressLine, stop.postalCode, stop.city);
               const isNext = nextStop?.id === stop.id && round.status === "active";
-              return <article className={`route-row${isNext ? " is-next" : ""}${stop.deliveredAt ? " is-delivered" : ""}`} key={stop.id}><span className="route-number">{stop.routeOrder}</span><div><h2>{stop.customerName}</h2><p>{stop.addressLine}, {stop.postalCode} {stop.city}</p>{isNext ? <strong className="next-label">Volgende stop</strong> : null}</div>{routeUrl ? <a className="secondary-button" href={routeUrl} target="_blank" rel="noreferrer">Navigeer</a> : <span className="address-warning">Adres onvolledig</span>}</article>;
+              return <article className={`route-row${isNext ? " is-next" : ""}${stop.deliveredAt ? " is-delivered" : ""}`} key={stop.id}><span className="route-number">{stop.routeOrder}</span><div><h2>{stop.customerName}</h2><p>{formatAddress(stop.addressLine, stop.postalCode, stop.city)}</p>{isNext ? <strong className="next-label">Volgende stop</strong> : null}</div>{routeUrl ? <a className="secondary-button" href={routeUrl} target="_blank" rel="noreferrer">Navigeer</a> : <span className="address-warning">Adres onvolledig</span>}</article>;
             })}
             {!nextStop && returnUrl ? <div className="return-route"><div><h2>Ronde klaar</h2><p>Navigeer terug naar het ingestelde startadres.</p></div><a className="primary-button" href={returnUrl} target="_blank" rel="noreferrer">Terug naar start</a></div> : null}
           </div>
@@ -82,7 +82,7 @@ export function DeliveryDashboard({ round, settings }: { round: RoundWithStops |
             {filteredStops.length === 0 ? <div className="empty-state"><h2>Geen adres gevonden</h2><p>Probeer een andere naam of straat.</p></div> : filteredStops.map((stop) => {
               const delivered = Boolean(stop.deliveredAt);
               const isNext = nextStop?.id === stop.id && round.status === "active";
-              return <article className={`delivery-row${delivered ? " is-delivered" : ""}${isNext ? " is-next" : ""}`} key={stop.id}><span className="route-number" aria-label={`Stop ${stop.routeOrder}`}>{stop.routeOrder}</span><div className="customer"><h2>{stop.customerName}</h2><p>{stop.addressLine}, {stop.postalCode} {stop.city}</p>{stop.note ? <p className="note">{stop.note}</p> : null}{isNext ? <strong className="next-label">Volgende stop</strong> : null}</div><p className="eggs">{stop.eggs} eieren</p><p className="amount">{formatEuro(stop.eggs * stop.unitPriceCents)}</p><button className="delivered-button" type="button" aria-pressed={delivered} onClick={() => toggle(stop.id, !delivered)} disabled={pending || round.status !== "active"}>{delivered ? <><CheckIcon className="icon" /> Ongedaan</> : "Bezorgd"}</button></article>;
+              return <article className={`delivery-row${delivered ? " is-delivered" : ""}${isNext ? " is-next" : ""}`} key={stop.id}><span className="route-number" aria-label={`Stop ${stop.routeOrder}`}>{stop.routeOrder}</span><div className="customer"><h2>{stop.customerName}</h2><p>{formatAddress(stop.addressLine, stop.postalCode, stop.city)}</p>{stop.note ? <p className="note">{stop.note}</p> : null}{isNext ? <strong className="next-label">Volgende stop</strong> : null}</div><p className="eggs">{stop.eggs} eieren</p><p className="amount">{formatEuro(stop.eggs * stop.unitPriceCents)}</p><button className="delivered-button" type="button" aria-pressed={delivered} onClick={() => toggle(stop.id, !delivered)} disabled={pending || round.status !== "active"}>{delivered ? <><CheckIcon className="icon" /> Ongedaan</> : "Bezorgd"}</button></article>;
             })}
           </div>
         )}

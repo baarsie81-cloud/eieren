@@ -44,13 +44,18 @@ export function formatEuro(cents: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
+export function formatAddress(addressLine: string, postalCode: string, city: string) {
+  const locality = [postalCode.trim(), city.trim()].filter(Boolean).join(" ");
+  return [addressLine.trim(), locality].filter(Boolean).join(", ");
+}
+
 export function hasCompleteAddress(addressLine: string, postalCode: string, city: string) {
-  return addressLine.trim().length >= 3 && /\d/.test(addressLine) && postalCode.trim().length >= 4 && city.trim().length >= 2;
+  return addressLine.trim().length >= 3 && /\d/.test(addressLine) && (!postalCode || postalCode.trim().length >= 4) && city.trim().length >= 2;
 }
 
 export function googleMapsWalkingUrl(addressLine: string, postalCode: string, city: string) {
   if (!hasCompleteAddress(addressLine, postalCode, city)) return null;
-  const destination = encodeURIComponent(`${addressLine}, ${postalCode} ${city}`);
+  const destination = encodeURIComponent([addressLine, postalCode, city].filter(Boolean).join(", "));
   return `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=walking&dir_action=navigate`;
 }
 

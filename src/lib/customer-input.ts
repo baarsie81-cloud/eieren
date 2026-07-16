@@ -52,11 +52,11 @@ export function customerInputFromForm(formData: FormData) {
   });
 }
 
-export function validateCustomerInput(input: CustomerInput) {
+export function validateCustomerInput(input: CustomerInput, options: { postalCodeRequired?: boolean } = {}) {
   const errors: string[] = [];
   if (input.name.length < 2) errors.push("Naam ontbreekt.");
   if (input.addressLine.length < 3) errors.push("Adres ontbreekt.");
-  if (input.postalCode.length < 4) errors.push("Postcode ontbreekt.");
+  if (options.postalCodeRequired !== false && input.postalCode.length < 4) errors.push("Postcode ontbreekt.");
   if (input.city.length < 2) errors.push("Plaats ontbreekt.");
   if (input.defaultEggs < 1) errors.push("Aantal eieren moet minimaal 1 zijn.");
   if (input.defaultEggs > 999) errors.push("Aantal eieren mag maximaal 999 zijn.");
