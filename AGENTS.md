@@ -6,5 +6,7 @@
 - Gebruik in de repository uitsluitend fictieve voorbeeldgegevens.
 - Commit nooit echte namen, adressen, telefoonnummers, betaalverzoeken of bezorghistorie.
 - Commit nooit `.env`-bestanden, databaseverbindingen of geheime sleutels.
-- Databasegebruik loopt later uitsluitend via beveiligde servercode; nooit rechtstreeks vanuit de browser.
+- Databasegebruik loopt uitsluitend via beveiligde servercode; nooit rechtstreeks vanuit de browser.
 - Controleer wijzigingen met `pnpm typecheck` en `pnpm build`.
+- Voer ook `pnpm test` uit bij wijzigingen aan login, validatie, import of bedragen.
+- Gebruik de Neon-ontwikkelbranch voor fictieve tests en de productiebranch uitsluitend voor echte livegegevens.
